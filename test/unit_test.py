@@ -9,7 +9,7 @@ import unittest
 from numpy.testing import assert_equal
 import numpy as np
 
-from models import common, supervised_models, read_data
+from models import common, read_data, supervised_models, time_series
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
@@ -33,27 +33,48 @@ class UnitTests(unittest.TestCase):
         # try:
         self.sismos, self.all_months = read_data.read_data_common('../data/')
         self.logger.info('Read Common Data. Done')
+
         self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series('../data/')
         self.logger.info('Read Time Series Data. Done')
+        self.time_series_object = time_series.TimeSeries(self.frequency_year, self.time_series_magnitude)
+
         self.features_classification, self.label_classification = read_data.read_data_classification('../data/')
         self.logger.info('Read classification Data. Done\n')
+
+        self.supervised_test = supervised_models.Supervised(self.features_classification.drop('YM', axis=1),
+                                                            self.label_classification)
         # except Exception as err:
         #    self.logger.error("Error {}".format(err))
 
     def test_read_Data_common(self):
-        self.logger.info('test_read_Data_common')
+
         assert_equal(len(self.sismos.columns), 15)
         assert_equal(len(self.all_months.columns), 1)
+        self.logger.info('test_read_Data_common. Done\n')
 
     def test_read_Data_time_series(self):
-        self.logger.info('test_read_Data_time_series')
+
         assert_equal(len(self.frequency_year.columns), 4)
         assert_equal(len(self.time_series_magnitude.columns), 1)
+        self.logger.info('test_read_Data_time_series. Done\n')
 
     def test_read_Data_classification(self):
-        self.logger.info('test_read_Data_classification')
+
         assert_equal(len(self.features_classification.columns), 10)
         assert_equal(len(self.label_classification.unique()), 2)
+        self.logger.info('test_read_Data_classification. Done\n')
+
+    def test_decomposition(self):
+
+        test_decomposition = self.time_series_object.decomposition()
+        self.logger.info('test_decomposition. Done\n')
+        assert_equal(test_decomposition, True)
+
+    def test_dickey_fuller_test(self):
+
+        test_dickey_fuller = self.time_series_object.dickey_fuller_test()
+        self.logger.info('test_decomposition. Done\n')
+        assert_equal(test_dickey_fuller, True)
 
     def test_best_classification(self):
         class_models = {'LogisticRegression':     (LogisticRegression(),     {}),
@@ -64,16 +85,19 @@ class UnitTests(unittest.TestCase):
                         'RandomForestClassifier': (RandomForestClassifier(), {'n_estimators': np.arange(1, 3),
                                                                               'max_depth': np.arange(1, 3),
                                                                               'min_samples_leaf': np.arange(1, 3)})}
+        self.supervised_test.evaluate_best_model(class_models)
 
-        supervised_test = supervised_models.Supervised(self.features_classification.drop('YM', axis=1),
-                                                       self.label_classification)
-        supervised_test.evaluate_best_model(class_models)
+    def test_plot_regression_with_big_earthquake(self):
 
-    def test_plot(self):
+        common.plot_regression_with_big_earthquake('Frequency per month/year split by magnitude', '# per month/year',
+                                                   'YM', self.features_classification, '', ['6', '7', '8'],
+                                                   self.sismos, False)
+        self.logger.info('plot_regression_with_big_earthquake. Done\n')
 
-        common.plot_time_series_with_big_earthquakes('Frequency per month/year split by magnitude', '# per month/year',
-                                                     'YM', self.features_classification, 'count',
-                                                     'mag_int', self.sismos)
+    def test_plot_rolling_statistics(self):
+
+        common.plot_rolling_stadistics(self.time_series_magnitude)
+        self.logger.info('test_plot_rolling_statistics. Done\n')
 
     def tearDown(self):
         # Close objects

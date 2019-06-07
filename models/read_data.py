@@ -125,8 +125,18 @@ def read_data_classification(path):
 def read_data_time_series(path):
     """
     Return required DataFrames for Time Series Analysis
+
     :return: frequency_year, time_series_magnitude
-    """
+
+    frequency_year = frecuency of earthquakes per year and magnitude type where magtype is
+                    {low: mag in [0,4), medium: mag in [4,6), high: mag in [6,10)}
+                            low --> you don't notice them
+                            medium --> they are not scary
+                            high --> the thing would get serious
+                    columns = ['year', 'magtype', 'magcount', 'magmax']
+
+    time_series_magnitude =  time series (frequency = month/yeam, data = maximum magnitude per period)
+            """
 
     # Get data related to earthquakes
     sismos, all_months = read_data_common(path)

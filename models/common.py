@@ -122,3 +122,20 @@ def plot_regression_with_big_earthquake(title_figure, y_label, column_x,
             plt.axvline(x=x_bar, color="black", ls='-.', lw=1)
 
     plt.legend(loc='best')
+
+
+def plot_rolling_stadistics(data_frame):
+    # Determining rolling statistics
+    window_size = 24
+    # Mean
+    rolling_mean = data_frame.rolling(window=window_size, center=True).mean()
+    # Standard Variation
+    rolling_std = data_frame.rolling(window=window_size, center=True).std()
+
+    # Plotting rolling statistics
+    plt.figure(figsize=(18, 5))
+    plt.title('Rolling  Mean & Standard Deviation')
+    orig = plt.plot(data_frame, color='blue', label='Original')
+    mean = plt.plot(rolling_mean, color='red', label='Mean')
+    st = plt.plot(rolling_std, color='black', label='Std')
+    plt.legend(loc='best')
