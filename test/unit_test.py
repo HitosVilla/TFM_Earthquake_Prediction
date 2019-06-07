@@ -1,52 +1,82 @@
+def warn(*args, **kwargs):
+    pass
+
+
+import warnings
+warnings.warn = warn
+
 import unittest
 from numpy.testing import assert_equal
 import numpy as np
-import pandas as pd
 
-from models import supervised_models, time_series
+from models import common, supervised_models, read_data
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
 
 class UnitTests(unittest.TestCase):
 
     def setUp(self):
-        # Set up required configuration
-
+        self.file_name = '../data/1979_200kmSantiago.csv'
         # Create logger
-        #self.logger = logger_tools.get_logger(self.config, name)
+        self.logger = common.get_logger('Test')
+        self.logger.info('******** Initialize unit test ********')
 
-        # Initialize Recommender
-        #self.time_series = time_series.TimeSeries()
-        pass
+        # Load earthquake data
+        # try:
+        self.sismos, self.all_months = read_data.read_data_common('../data/')
+        self.logger.info('Read Common Data. Done')
+        self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series('../data/')
+        self.logger.info('Read Time Series Data. Done')
+        self.features_classification, self.label_classification = read_data.read_data_classification('../data/')
+        self.logger.info('Read classification Data. Done\n')
+        # except Exception as err:
+        #    self.logger.error("Error {}".format(err))
 
-    # TEST READ DATA
-    def test_read_data_ok(self):
-        file_time_series = pd.read_csv('../data/1979_5.csv', parse_dates=True)
+    def test_read_Data_common(self):
+        self.logger.info('test_read_Data_common')
+        assert_equal(len(self.sismos.columns), 15)
+        assert_equal(len(self.all_months.columns), 1)
 
-        # Create date column
-        file_time_series['date'] = [d.date() for d in file_time_series['time']]
+    def test_read_Data_time_series(self):
+        self.logger.info('test_read_Data_time_series')
+        assert_equal(len(self.frequency_year.columns), 4)
+        assert_equal(len(self.time_series_magnitude.columns), 1)
 
-        # Validate there is no null values
-        assert_equal(file_time_series.isnull().values.any(), True)
+    def test_read_Data_classification(self):
+        self.logger.info('test_read_Data_classification')
+        assert_equal(len(self.features_classification.columns), 10)
+        assert_equal(len(self.label_classification.unique()), 2)
 
-        # Create Time Series with maximum magnitude per day
-        time_series = pd.DataFrame(file_time_series[(file_time_series['mag'] > 5)], columns=['date', 'mag']).groupby(['date']).max()
+    def test_best_classification(self):
+        class_models = {'LogisticRegression':     (LogisticRegression(),     {}),
+                        'KNeighborsClassifier':   (KNeighborsClassifier(),   {'n_neighbors': np.arange(2, 10)}),
+                        'DecisionTreeClassifier': (DecisionTreeClassifier(), {'min_samples_leaf': np.arange(1, 3),
+                                                                              'max_depth': np.arange(1, 3)}),
+                        'SVC':                    (SVC(kernel="linear"),     {'C': np.arange(1, 3)}),
+                        'RandomForestClassifier': (RandomForestClassifier(), {'n_estimators': np.arange(1, 3),
+                                                                              'max_depth': np.arange(1, 3),
+                                                                              'min_samples_leaf': np.arange(1, 3)})}
 
-        # Recreate index
-        time_series.reset_index(inplace=True)
-        time_series.set_index(time_series['date'], inplace=True)
-        del time_series["date"]
-        time_series.sort_index(inplace=True)
+        supervised_test = supervised_models.Supervised(self.features_classification.drop('YM', axis=1),
+                                                       self.label_classification)
+        supervised_test.evaluate_best_model(class_models)
 
-        # Fill missing days with magnitude zero
-        time_series = time_series.asfreq(freq='D', fill_value=0)
+    def test_plot(self):
 
-        # Validate number of days
-        assert_equal(time_series.count(),14593)
-
-
-
+        common.plot_time_series_with_big_earthquakes('Frequency per month/year split by magnitude', '# per month/year',
+                                                     'YM', self.features_classification, 'count',
+                                                     'mag_int', self.sismos)
 
     def tearDown(self):
-        # Close database connection
+        # Close objects
         pass
 
 
