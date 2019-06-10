@@ -8,7 +8,7 @@ def read_data_common(path_file):
     :return: sismos  and all_months dataframes
 
     sismos = ['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place', 'time',
-                'year', 'month', 'YM', 'magtype', 'distcity', 'city', 'mag_int' ]
+                'year', 'month', 'YM', 'magtype', 'mag_int', 'region' ]
 
     all_months = list of all months from  January 1979 to June 2019
     """
@@ -29,26 +29,16 @@ def read_data_common(path_file):
     custom_magnitudes = ([0., 4., 6, 10.])
     sismos['magtype'] = pd.cut(sismos['mag'], custom_magnitudes, labels=["low", "medium", "high"])
 
-    # split place column to obtain the distance to nearest city
-    sismos['distcity'] = sismos['place'][sismos['place'].str.contains('km')].astype(str).str[:3]
-    sismos['distcity'] = sismos['distcity'].fillna(0)
-    sismos['distcity'] = sismos['distcity'].map(lambda x: str(x).rstrip('km'))
-
-    # split place column to obtain the nearest city
-    test = sismos['place'].str.split(",", n=1, expand=True)
-    test2 = test[0].str.split("of", n=1, expand=True)
-    test2[1] = test2[1].fillna(test2[0])
-    cities = test2[1]
-    cities = cities.map(lambda x: x.replace('fshore ', '').strip(' '))
-    # Replace wrong names
-    santiago = ["Libertador O'Higgins", "Region Metropolitana", "Libertador General Bernardo O'Higgins",
-                'Villa Presidente Frei', 'Puente Alto', 'Lo Prado']
-    cities[cities.isin(santiago)] = 'Santiago'
-    cities[cities == 'f the coast of Valparaiso'] = 'Valparaiso'
-    sismos['city'] = cities
-
     # Magnitude is classified by its integer number, so we manage just 7 magnitudes
     sismos['mag_int'] = sismos['mag'].map(lambda x: int(x))
+
+    # Divide all records into 4 regions, depending on latitude
+    maxlat = sismos['latitude'].max()
+    minlat = sismos['latitude'].min()
+    quarter = (maxlat - minlat) / 5
+    split_latitudes = ([minlat - 1, minlat + quarter, minlat + (2 * quarter), minlat + (3 * quarter), maxlat + 1])
+    sismos['region'] = pd.cut(sismos['latitude'], split_latitudes,
+                              labels=["Patagonia", "Puerto Mont", "Santiago", 'Atacama'])
 
     all_months = pd.DataFrame()
     all_months['YM'] = pd.date_range(start='1/1/1979', end='6/1/2019', freq='MS')
@@ -139,6 +129,46 @@ def read_data_time_series(path_file):
 
     # Get data related to earthquakes
     sismos, all_months = read_data_common(path_file)
+
+    frequency_year = (sismos[['year', 'magtype', 'mag']]
+                      .groupby(['year', 'magtype'])
+                      .agg(['count', 'max'])
+                      .unstack(fill_value=0).stack()
+                      .reset_index()
+                      .sort_index()
+                      )
+
+    # Update columns name to have just one level ['year', 'magtype', 'magcount', 'magmax']
+    frequency_year.columns = [''.join(x) for x in frequency_year.columns.ravel()]
+
+    # Auxiliar DataFrame to create time_series_magnitude = max magnitude per month/year
+    aux = (sismos[['YM', 'mag']].groupby(['YM']).max().sort_index())
+
+    time_series_magnitude = (all_months.merge(aux, left_on='YM', right_index=True, how='left')
+                             .fillna(aux['mag'].mean())
+                             .set_index(all_months['YM'])
+                             .sort_index())
+
+    del time_series_magnitude["YM"]
+
+    return frequency_year, time_series_magnitude
+
+
+def read_data_time_series_by_region(sismos, all_months, region):
+    """
+    Return required DataFrames for Time Series Analysis
+
+    :return: frequency_year, time_series_magnitude for the selected region
+
+    frequency_year = frecuency of earthquakes per year and magnitude type where magtype is
+                    {low: mag in [0,4), medium: mag in [4,6), high: mag in [6,10)}
+                            low --> you don't notice them
+                            medium --> they are not scary
+                            high --> the thing would get serious
+                    columns = ['year', 'magtype', 'magcount', 'magmax']
+
+    time_series_magnitude =  time series (frequency = month/yeam, data = maximum magnitude per period)
+            """
 
     frequency_year = (sismos[['year', 'magtype', 'mag']]
                       .groupby(['year', 'magtype'])

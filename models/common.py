@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from pmdarima import auto_arima
 import logging
 
 
@@ -29,14 +31,19 @@ def plot(x, y, y_label, title):
     plt.plot(x, y)
 
 
-def plot_data_frames(data_frames_colors, y_label, title):
-    # Set plot figure size
+def plot_time_series_prediction(n_periods, title, forecast, conf_int, mag_ym):
+
+    # Plot the history and the forecasts with its interval of confidence
+    x_years = pd.date_range(start='1/1/1979', periods=len(mag_ym.index) + n_periods, freq='MS')
     plt.figure(figsize=(18, 10))
     plt.subplot(211)
-    plt.ylabel(y_label)
     plt.suptitle(title, fontsize=20)
-    for data_frame, color in data_frames_colors:
-        plt.plot(data_frame, color=color)
+    plt.xlabel("Year")
+    plt.ylabel("Magnitude")
+
+    plt.plot(x_years[:-n_periods], mag_ym['mag'], alpha=0.75)
+    plt.plot(x_years[-n_periods:], forecast, alpha=0.75)  # Forecasts
+    plt.fill_between(x_years[-n_periods:], conf_int[:, 0], conf_int[:, 1], alpha=0.1, color='b')
 
 
 def plot_time_series_with_big_earthquakes(title_figure, y_label, column_x,

@@ -17,7 +17,7 @@ class TimeSeries(object):
         self.frequency_year = frequency_year
         self.time_series_magnitude = time_series_magnitude
 
-    def decomposition(self):
+    def decomposition(self,title=''):
 
         to_decompose = self.time_series_magnitude
 
@@ -26,8 +26,9 @@ class TimeSeries(object):
         seasonal = decomposition.seasonal.fillna(0)
         residual = decomposition.resid.fillna(0)
 
-        plt.figure(figsize=(18, 7))
+        plt.figure(figsize=(18, 10))
         plt.subplot(411)
+        plt.suptitle(title, fontsize=20)
         plt.plot(to_decompose, label='Original')
         plt.legend(loc='best')
         plt.subplot(412)

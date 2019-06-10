@@ -51,7 +51,7 @@ class UnitTests(unittest.TestCase):
 
     def test_read_Data_common(self):
 
-        assert_equal(len(self.sismos.columns), 15)
+        assert_equal(len(self.sismos.columns), 14)
         assert_equal(len(self.all_months.columns), 1)
         self.logger.info('test_read_Data_common. Done\n')
 
