@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def read_data_common(path):
+def read_data_common(path_file):
     """
     Read Earthquake file and return 2 dataframes.
 
@@ -13,7 +13,7 @@ def read_data_common(path):
     all_months = list of all months from  January 1979 to June 2019
     """
     # get data
-    original_data = pd.read_csv(path + '1979_200kmSantiago.csv', parse_dates=True)
+    original_data = pd.read_csv(path_file , parse_dates=True)
     original_data['time'] = pd.to_datetime(original_data['time'])  # .astype('datetime64[ns]')
     original_data['date'] = pd.to_datetime([d.date() for d in original_data['time']])
     original_data['hour'] = [d.time() for d in original_data['time']]
@@ -56,7 +56,7 @@ def read_data_common(path):
     return sismos, all_months
 
 
-def read_data_classification(path):
+def read_data_classification(path_file_common, path_file):
     """
     Read Temperature file and return a Dataframe and a Series
 
@@ -71,10 +71,10 @@ def read_data_classification(path):
     """
 
     # Get data related to earthquakes
-    sismos, all_months = read_data_common(path)
+    sismos, all_months = read_data_common(path_file_common)
 
     # Read Temperature fil
-    temperature = pd.read_csv(path + 'Temperature.csv')
+    temperature = pd.read_csv(path_file)
     temperature_chile = temperature[temperature['Country'] == 'Chile'][1484:]
     temperature_chile['dt'] = pd.to_datetime(temperature_chile['dt'])
 
@@ -93,7 +93,6 @@ def read_data_classification(path):
     # in the corresponding period
     features_classification = all_sismos_classification.pivot(index='YM', columns='mag_int', values='count').fillna(0).astype(
         object).reset_index()
-    del features_classification[0.0]
     features_classification.columns = ('YM', '2', '3', '4', '5', '6', '7', '8')
 
     # Merge Earthquake data with temperature data and select and rename columns
@@ -122,7 +121,7 @@ def read_data_classification(path):
     return features_classification, label_classification
 
 
-def read_data_time_series(path):
+def read_data_time_series(path_file):
     """
     Return required DataFrames for Time Series Analysis
 
@@ -139,7 +138,7 @@ def read_data_time_series(path):
             """
 
     # Get data related to earthquakes
-    sismos, all_months = read_data_common(path)
+    sismos, all_months = read_data_common(path_file)
 
     frequency_year = (sismos[['year', 'magtype', 'mag']]
                       .groupby(['year', 'magtype'])

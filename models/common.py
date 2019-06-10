@@ -29,6 +29,16 @@ def plot(x, y, y_label, title):
     plt.plot(x, y)
 
 
+def plot_data_frames(data_frames_colors, y_label, title):
+    # Set plot figure size
+    plt.figure(figsize=(18, 10))
+    plt.subplot(211)
+    plt.ylabel(y_label)
+    plt.suptitle(title, fontsize=20)
+    for data_frame, color in data_frames_colors:
+        plt.plot(data_frame, color=color)
+
+
 def plot_time_series_with_big_earthquakes(title_figure, y_label, column_x,
                                           data_frame, column_y, column_lines, data_frame_bar):
     """
@@ -67,7 +77,7 @@ def plot_time_series_with_big_earthquakes(title_figure, y_label, column_x,
         plt.plot(x, y, color=palette(i), label=column_line)
 
     # one bar per greatest earthquakes
-    x_bar_arr = data_frame_bar[data_frame_bar['mag'] >= 7][column_x].unique()
+    x_bar_arr = data_frame_bar[column_x].unique()
 
     for x_bar in x_bar_arr:
         plt.axvline(x=x_bar, color="black", ls='-.', lw=1)
@@ -115,7 +125,7 @@ def plot_regression_with_big_earthquake(title_figure, y_label, column_x,
         plt.plot(x, y, color=palette(i), label=column_line)
 
     # one bar per greatest earthquakes
-    x_bar_arr = data_frame_bar[data_frame_bar['mag'] >= 7][column_x].unique()
+    x_bar_arr = data_frame_bar[column_x].unique()
 
     if big_earthquake:
         for x_bar in x_bar_arr:

@@ -31,14 +31,17 @@ class UnitTests(unittest.TestCase):
 
         # Load earthquake data
         # try:
-        self.sismos, self.all_months = read_data.read_data_common('../data/')
+        self.sismos, self.all_months = read_data.read_data_common('../data/earthquake.csv')
         self.logger.info('Read Common Data. Done')
 
-        self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series('../data/')
+        # Read Time Series
+        self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series('../data/earthquake.csv')
         self.logger.info('Read Time Series Data. Done')
         self.time_series_object = time_series.TimeSeries(self.frequency_year, self.time_series_magnitude)
 
-        self.features_classification, self.label_classification = read_data.read_data_classification('../data/')
+        # Read Classification
+        self.features_classification, self.label_classification = \
+            read_data.read_data_classification('../data/earthquake.csv', '../data/Temperature.csv')
         self.logger.info('Read classification Data. Done\n')
 
         self.supervised_test = supervised_models.Supervised(self.features_classification.drop('YM', axis=1),
@@ -86,6 +89,12 @@ class UnitTests(unittest.TestCase):
                                                                               'max_depth': np.arange(1, 3),
                                                                               'min_samples_leaf': np.arange(1, 3)})}
         self.supervised_test.evaluate_best_model(class_models)
+
+    def test_plot_data_frames(self):
+
+        data_frames_colors = [[self.time_series_magnitude, 'green'],[self.time_series_magnitude, 'blue']]
+        common.plot_data_frames(data_frames_colors, 'test', 'test')
+
 
     def test_plot_regression_with_big_earthquake(self):
 
