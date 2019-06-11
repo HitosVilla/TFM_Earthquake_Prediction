@@ -22,7 +22,7 @@ class Supervised(object):
         # Split data into train and test
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(features, label, test_size=0.20)
 
-        self.logger.info('Initialized Supervised class. Data splited into Train, Test\n')
+        self.logger.info('Initialized Supervised class. Data split into Train, Test\n')
 
     def evaluate_best_model(self, models):
         """ Evaluate different models to choose the best one
@@ -50,6 +50,13 @@ class Supervised(object):
         return best_model
 
     def cross_validation(self, model, n, metric):
+        """
+        Call sklearn.model_selection.cross_val_score and return best_metric
+        :param model: model to be evaluated
+        :param n: Determines the cross-validation splitting strategy
+        :param metric: name of the metric to evaluate mmodel
+        :return: best_metric
+        """
         # Calculate metrics for n subsets
         self.logger.info('Init Cross validation')
         best_metric = cross_val_score(model, self.features, self.label, cv=n, scoring=metric)
@@ -57,7 +64,12 @@ class Supervised(object):
         return best_metric
 
     def grid_search(self, model, param_grid_dict):
-        """ Search for the best parameters """
+        """
+        Call sklearn.model_selection.GridSearchCV and fit it.
+        :param model: to be evaluated
+        :param param_grid_dict: to evaluate
+        :return: best score, best estimator and best params
+        """
 
         model_test = GridSearchCV(model, param_grid=param_grid_dict, cv=5)
         model_test.fit(self.features, self.label)

@@ -41,7 +41,7 @@ class UnitTests(unittest.TestCase):
 
         # Read Classification
         self.features_classification, self.label_classification = \
-            read_data.read_data_classification('../data/earthquake.csv', '../data/Temperature.csv')
+            read_data.read_data_classification(self.sismos, self.all_months, '../data/Temperature.csv')
         self.logger.info('Read classification Data. Done\n')
 
         self.supervised_test = supervised_models.Supervised(self.features_classification.drop('YM', axis=1),

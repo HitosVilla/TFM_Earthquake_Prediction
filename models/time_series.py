@@ -18,14 +18,21 @@ class TimeSeries(object):
         self.time_series_magnitude = time_series_magnitude
 
     def decomposition(self,title=''):
+        """
+        decompose time serie into Trend, Seasonality, Residual
+        :param title: plot title
+        :return: a plot is displayed after calling this method
+        """
 
         to_decompose = self.time_series_magnitude
 
+        # Decompose
         decomposition = seasonal_decompose(to_decompose)
         trend = decomposition.trend.fillna(0)
         seasonal = decomposition.seasonal.fillna(0)
         residual = decomposition.resid.fillna(0)
 
+        # Plot
         plt.figure(figsize=(18, 10))
         plt.subplot(411)
         plt.suptitle(title, fontsize=20)
@@ -41,9 +48,11 @@ class TimeSeries(object):
         plt.plot(residual, label='Residual')
         plt.legend(loc='best')
 
-        return True
-
     def dickey_fuller_test(self):
+        """
+        Dickey Fuller test time_series_magnitude (mag_ym)
+        :return: return values of the test and the conclusion
+        """
 
         text = 'Dickey-Fuller Test: Magnitude per year \n\n'
 

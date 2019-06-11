@@ -4,23 +4,25 @@ import pandas as pd
 def read_data_common(path_file):
     """
     Read Earthquake file and return 2 dataframes.
-
+    :param path_file: path and file name to be read
     :return: sismos  and all_months dataframes
 
-    sismos = ['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place', 'time',
-                'year', 'month', 'YM', 'magtype', 'mag_int', 'region' ]
+    sismos = ['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place',
+              'time', 'year', 'month', 'YM', 'magtype', 'mag_int', 'region' ]
 
-    all_months = list of all months from  January 1979 to June 2019
+    all_months = list of all months from  January 1970 to June 2019
     """
     # get data
-    original_data = pd.read_csv(path_file , parse_dates=True)
+    original_data = pd.read_csv(path_file, parse_dates=True)
     original_data['time'] = pd.to_datetime(original_data['time'])  # .astype('datetime64[ns]')
     original_data['date'] = pd.to_datetime([d.date() for d in original_data['time']])
     original_data['hour'] = [d.time() for d in original_data['time']]
 
+    # select columns from original data
     sismos = (original_data[['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place', 'time']]
               .sort_values(by=['date']))
 
+    # new datetime columns
     sismos['year'] = pd.DatetimeIndex(sismos['date']).year
     sismos['month'] = pd.DatetimeIndex(sismos['date']).month
     sismos['YM'] = pd.to_datetime(sismos['year'].astype(str) + '-' + sismos['month'].astype(str))
@@ -40,28 +42,29 @@ def read_data_common(path_file):
     sismos['region'] = pd.cut(sismos['latitude'], split_latitudes,
                               labels=["Patagonia", "Puerto Mont", "Santiago", 'Atacama'])
 
+    # Dummy dataframe with all months from 1970 until 2019
     all_months = pd.DataFrame()
-    all_months['YM'] = pd.date_range(start='1/1/1979', end='6/1/2019', freq='MS')
+    all_months['YM'] = pd.date_range(start='1/1/1970', end='6/1/2019', freq='MS')
 
     return sismos, all_months
 
 
-def read_data_classification(path_file_common, path_file):
+def read_data_classification(sismos, all_months, path_file):
     """
     Read Temperature file and return a Dataframe and a Series
-
-   :return: features_classification and  label_classification
+    :param sismos: ['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place',
+                    'time', 'year', 'month', 'YM', 'magtype', 'mag_int', 'region' ]
+    :param all_months: list of all months from  January 1970 to June 2019
+    :param path_file: path and name of temperature file
+    :return: features_classification and  label_classification
 
     features_classification = ['YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert']
-                          where YM reference to month/year
-                          and '2', '3', '4', '5', '6', '7', '8' contain the number of earthquakes of that magnitude
+                            where YM reference to month/year
+                            and '2', '3', '4', '5', '6', '7', '8' contain the number of earthquakes of that magnitude
 
     label_classification = 1 if (next month has earthquakes > = 6) else is 0,
     so if a know the earthquakes magnitudes and temperatures of the current month, then I can predict next month
     """
-
-    # Get data related to earthquakes
-    sismos, all_months = read_data_common(path_file_common)
 
     # Read Temperature fil
     temperature = pd.read_csv(path_file)
@@ -70,19 +73,26 @@ def read_data_classification(path_file_common, path_file):
 
     # Frequency of each integer magnitude per month/year
     sismos_classification = (sismos[['YM', 'mag_int', 'time']].groupby(['YM', 'mag_int'])
-                         .agg(['count'])
-                         .unstack(fill_value=0).stack()
-                         .reset_index()
-                         .sort_index())
+                             .agg(['count'])
+                             .unstack(fill_value=0).stack()
+                             .reset_index()
+                             .sort_index())
     sismos_classification.columns = ['YM', 'mag_int', 'count']
 
     # Fill missing months
-    all_sismos_classification = (all_months.merge(sismos_classification, left_on='YM', right_on='YM', how='left').fillna(0))
+    all_sismos_classification = (all_months
+                                 .merge(sismos_classification, left_on='YM', right_on='YM', how='left')
+                                 .fillna(0))
 
     # Create one column per integer magnitude, the values of these columns is the number of earthquakes of that kind
     # in the corresponding period
-    features_classification = all_sismos_classification.pivot(index='YM', columns='mag_int', values='count').fillna(0).astype(
-        object).reset_index()
+    features_classification = (all_sismos_classification
+                               .pivot(index='YM', columns='mag_int', values='count')
+                               .fillna(0)
+                               .astype(object)
+                               .reset_index())
+    del features_classification[0.0]
+
     features_classification.columns = ('YM', '2', '3', '4', '5', '6', '7', '8')
 
     # Merge Earthquake data with temperature data and select and rename columns
@@ -92,73 +102,32 @@ def read_data_classification(path_file_common, path_file):
     features_classification.columns = ('YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert')
 
     # I haven't found data for all years, so I decide set the missing values with the values of the 10 previous years
-    features_classification["Tempt"][416:] = features_classification["Tempt"][344:414]
-    features_classification["TemptUncert"][416:] = features_classification["TemptUncert"][344:414]
+    features_classification["Tempt"][524:] = features_classification["Tempt"][452:522]
+    features_classification["TemptUncert"][524:] = features_classification["TemptUncert"][452:522]
 
     # Convert to integer columns type object
     columns_object = features_classification.columns[features_classification.dtypes == 'object']
     for column_object in columns_object:
         features_classification[column_object] = features_classification[column_object].astype('int')
-    features_classification.dtypes
 
     # label_classification = what we want to predict it's if the next month will have a big earthquake depending on
     # earthquake during current month and temperatures.'''
     # So first we calculate if the current month has a big earthquake
-    label_classification = features_classification.apply(lambda r: 0 if ((r['6'], r['7'], r['8']) == (0, 0, 0)) else 1, axis=1)
+    label_classification = (features_classification
+                            .apply(lambda r: 0 if ((r['6'], r['7'], r['8']) == (0, 0, 0)) else 1, axis=1))
     # Second we move them to their previous index and set 0 to the last month
     label_classification = label_classification.shift(-1).fillna(0).astype('int')
 
     return features_classification, label_classification
 
 
-def read_data_time_series(path_file):
+def read_data_time_series(sismos, all_months):
     """
     Return required DataFrames for Time Series Analysis
-
+    :param sismos: ['id', 'date', 'latitude', 'longitude', 'depth', 'mag', 'place',
+                    'time', 'year', 'month', 'YM', 'magtype', 'mag_int', 'region' ]
+    :param all_months: list of all months from  January 1970 to June 2019
     :return: frequency_year, time_series_magnitude
-
-    frequency_year = frecuency of earthquakes per year and magnitude type where magtype is
-                    {low: mag in [0,4), medium: mag in [4,6), high: mag in [6,10)}
-                            low --> you don't notice them
-                            medium --> they are not scary
-                            high --> the thing would get serious
-                    columns = ['year', 'magtype', 'magcount', 'magmax']
-
-    time_series_magnitude =  time series (frequency = month/yeam, data = maximum magnitude per period)
-            """
-
-    # Get data related to earthquakes
-    sismos, all_months = read_data_common(path_file)
-
-    frequency_year = (sismos[['year', 'magtype', 'mag']]
-                      .groupby(['year', 'magtype'])
-                      .agg(['count', 'max'])
-                      .unstack(fill_value=0).stack()
-                      .reset_index()
-                      .sort_index()
-                      )
-
-    # Update columns name to have just one level ['year', 'magtype', 'magcount', 'magmax']
-    frequency_year.columns = [''.join(x) for x in frequency_year.columns.ravel()]
-
-    # Auxiliar DataFrame to create time_series_magnitude = max magnitude per month/year
-    aux = (sismos[['YM', 'mag']].groupby(['YM']).max().sort_index())
-
-    time_series_magnitude = (all_months.merge(aux, left_on='YM', right_index=True, how='left')
-                             .fillna(aux['mag'].mean())
-                             .set_index(all_months['YM'])
-                             .sort_index())
-
-    del time_series_magnitude["YM"]
-
-    return frequency_year, time_series_magnitude
-
-
-def read_data_time_series_by_region(sismos, all_months, region):
-    """
-    Return required DataFrames for Time Series Analysis
-
-    :return: frequency_year, time_series_magnitude for the selected region
 
     frequency_year = frecuency of earthquakes per year and magnitude type where magtype is
                     {low: mag in [0,4), medium: mag in [4,6), high: mag in [6,10)}

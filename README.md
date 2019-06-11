@@ -6,6 +6,36 @@ Due to my period living in Chile, I am afraid of earthquakes and I think that an
 
 With this work I don't try to predict future earthquakes, I know that it's not possible. My intention is to know them a little bit better and practice some of the models learned during my Master of Data Science.
 
+### Code Structure
+
+* [TFM_1_Scraping.ipynb] notebook to download earthquake data from website.
+
+* [TFM_2_Memo.ipynb] notebook where code in [models] folder is executed and explained step by step. 
+
+* [data]: folder where csv files are stored
+
+* [front_end]
+    * [TFM_TimeSeries.twb]: Tableau dashboard with 3 storys:
+        1. Relation between depth and magnitude
+        2. Grafic where historical and forecast data, related to maximum magnitude per month/year, is displayed.
+        3. Map where earthquakes are displayed with pagging by month/year
+        
+        Dashboard information can be filtered by area (Patagonia, Puerto Mont, Santiago, Atacama)
+    * ¿? 
+* [models]
+    * [common.py]: get_logger and different plots methods
+    * [read_data.py]: generate required data frames for analysis.
+        1. read_data_common: From earthquake.csv file to sismos and all_months dataframes
+        2. read_data_classification: from sismos and all_months dataframes and Temperature.csv file to features_classification dataframe and label_classification series
+        3. read_data_time_series: from sismos and all_months dataframes to frequency_year, time_series_magnitude dataframes
+    * [supervised_models.py]: contains Supervided class with methods for crossvalidation, gridsearchcv and one to find the best model evaluating differents parameters in different models 
+    * [time_series.py]: contains TimeSeries class with methods for decompose the series and for Dickey Fuller test
+    
+* [test]: 
+    * `unit_test.py`: project unit test to verify everithing is still working after code updates. 
+    
+### Index
+
 This work is divided in 3 parts:
 
 1. Data Processing and Understanding,
@@ -13,6 +43,8 @@ This work is divided in 3 parts:
 2. Time Series (ARIMA and LSTM) 
 
 3. Supervised learning models (Classification)
+
+____________________________________________________________________________________________________________________________
 
 ## 1. Data Processing and Understanding
 
@@ -35,8 +67,7 @@ Data downloaded from https://earthquake.usgs.gov/earthquakes/search/ in csv form
 * `date, hour, year and month`
 * `YM`(=[year]-[month])
 * `magtype` = {__low__: mag in [0,4), __medium__: mag in [4,6), __high__: mag in [6,10)}
-* `city`= nearest city to hypocenter get from column place
-* `distcity` = distance from hypocenter to nearest city get from column place
+* `region` = split data into 4 equals regions {Patagonia, Puerto Mont ,Santiago , Atacama} depending on latitude
 
 :clipboard: **frequency_year** = number of seisms and maximun magnitude per year and magtype
 
@@ -48,22 +79,36 @@ Data downloaded from https://earthquake.usgs.gov/earthquakes/search/ in csv form
  so if we know the earthquakes magnitudes and temperatures of the current month, then I can predict next month
  ** = 
 
-## 1.2. Conclusions
+### 1.2. Conclusions
 
-:chart_with_upwards_trend: The greater magnitude, the less depth
+* The greater magnitude, the less depth
 
 ![alt text](./images/Conclusion1.png)
 
-:chart_with_upwards_trend: Previous a big earthquake, the number of medium earthquake increases drastically
+* Previous a big earthquake, the number of medium earthquake increases drastically
 
 ![alt text](./images/Conclusion2.png)
 
+* The farther north the higher the frequency and the bigger magnitude
+
+![alt text](./images/Conclusion3.png)
+
 ## 2. Time Series 
 
-### 2.1. ARIMA 
+Time series = maximun magnitude per month/year
 
-### 2.2. LSTM
+I have followed BOX-JENKINS methodology to study the time series. First I have analyzed all records at once, and after the data split by region. In both cases the prediction is almost a straight line, far away from reality.
 
-## 3. Supervised Learning Models 
+### Decomposition
+![alt text](./images/TimeSeries1.png)
 
-### 3.1. Classification 
+### Forecast
+![alt text](./images/TimeSeries2.png)
+
+### Autocorrelation
+As it is displayed in the following autocorrelation plot, this time series is completly random.
+
+![alt text](./images/TimeSeries3.png)
+
+## 3. Classification 
+
