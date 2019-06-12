@@ -49,7 +49,7 @@ def plot_time_series_prediction(n_periods, title, forecast, conf_int, mag_ym):
     :return: a plot is displayed after calling this method
     """
     # Plot configuration
-    x_years = pd.date_range(start='1/1/1979', periods=len(mag_ym.index) + n_periods, freq='MS')
+    x_years = pd.date_range(start='1/1/1970', periods=len(mag_ym.index) + n_periods, freq='MS')
     plt.figure(figsize=(18, 10))
     plt.subplot(211)
     plt.suptitle(title, fontsize=20)

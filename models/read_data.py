@@ -101,9 +101,22 @@ def read_data_classification(sismos, all_months, path_file):
         ['YM', '2', '3', '4', '5', '6', '7', '8', 'AverageTemperature', 'AverageTemperatureUncertainty']]
     features_classification.columns = ('YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert')
 
-    # I haven't found data for all years, so I decide set the missing values with the values of the 10 previous years
-    features_classification["Tempt"][524:] = features_classification["Tempt"][452:522]
-    features_classification["TemptUncert"][524:] = features_classification["TemptUncert"][452:522]
+    # I haven't found data for all years, so I decide to set missing values with the mean for the same month
+    features_classification['Month'] = features_classification['YM'].map(lambda x: x.month)
+    temp_mean = (features_classification
+                 .groupby(features_classification['YM'].map(lambda x: x.month)).mean())
+    features_classification = features_classification.merge(temp_mean, left_on='Month', right_index=True, how='left')
+    features_classification['Tempt_x'].fillna(features_classification['Tempt_y'], inplace=True)
+    features_classification['TemptUncert_x'].fillna(features_classification['TemptUncert_y'], inplace=True)
+    del features_classification['Month_x']
+    del features_classification['Tempt_y']
+    del features_classification['TemptUncert_y']
+    del features_classification['Month_y']
+    features_classification.columns = ('YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert')
+
+    # Make discrete 'Tempt' and 'TemptUncert' columns
+    features_classification['Tempt'] = round(features_classification['Tempt'], 1)
+    features_classification['TemptUncert'] = round(features_classification['TemptUncert'], 1)
 
     # Convert to integer columns type object
     columns_object = features_classification.columns[features_classification.dtypes == 'object']

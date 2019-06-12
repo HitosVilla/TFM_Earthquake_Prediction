@@ -21,6 +21,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
 
+
 class UnitTests(unittest.TestCase):
 
     def setUp(self):
@@ -35,7 +36,7 @@ class UnitTests(unittest.TestCase):
         self.logger.info('Read Common Data. Done')
 
         # Read Time Series
-        self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series('../data/earthquake.csv')
+        self.frequency_year, self.time_series_magnitude = read_data.read_data_time_series(self.sismos, self.all_months)
         self.logger.info('Read Time Series Data. Done')
         self.time_series_object = time_series.TimeSeries(self.frequency_year, self.time_series_magnitude)
 
@@ -77,7 +78,7 @@ class UnitTests(unittest.TestCase):
 
         test_dickey_fuller = self.time_series_object.dickey_fuller_test()
         self.logger.info('test_decomposition. Done\n')
-        assert_equal(test_dickey_fuller, True)
+        assert_equal(test_dickey_fuller[:13], 'Dickey-Fuller')
 
     def test_best_classification(self):
         class_models = {'LogisticRegression':     (LogisticRegression(),     {}),
@@ -90,11 +91,10 @@ class UnitTests(unittest.TestCase):
                                                                               'min_samples_leaf': np.arange(1, 3)})}
         self.supervised_test.evaluate_best_model(class_models)
 
-    def test_plot_data_frames(self):
+    def test_plot(self):
 
-        data_frames_colors = [[self.time_series_magnitude, 'green'],[self.time_series_magnitude, 'blue']]
-        common.plot_data_frames(data_frames_colors, 'test', 'test')
-
+        common.plot(self.time_series_magnitude.index, self.time_series_magnitude['mag'], 'test', 'test')
+        self.logger.info('plot. Done\n')
 
     def test_plot_regression_with_big_earthquake(self):
 

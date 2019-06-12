@@ -17,7 +17,7 @@ class TimeSeries(object):
         self.frequency_year = frequency_year
         self.time_series_magnitude = time_series_magnitude
 
-    def decomposition(self,title=''):
+    def decomposition(self, title=''):
         """
         decompose time serie into Trend, Seasonality, Residual
         :param title: plot title
@@ -48,6 +48,8 @@ class TimeSeries(object):
         plt.plot(residual, label='Residual')
         plt.legend(loc='best')
 
+        return True
+
     def dickey_fuller_test(self):
         """
         Dickey Fuller test time_series_magnitude (mag_ym)
@@ -76,13 +78,3 @@ class TimeSeries(object):
             text = text + '\nData has a unit root and is non-stationary'
 
         return text
-
-    def arima(self):
-
-        '''plot_acf(self.time_serie)
-        plot_pacf(self.time_serie)
-        model = ARIMA(history, order=(5, 1, 0))
-        model_fit = model.fit()
-        output = model_fit.forecast()
-        yhat = output[0]'''
-        pass

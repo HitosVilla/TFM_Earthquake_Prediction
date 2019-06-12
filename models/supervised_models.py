@@ -1,10 +1,10 @@
-def warn(*args, **kwargs):
-    pass
-import warnings
-warnings.warn = warn
-
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from models import common
+
+import warnings
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
 
 
 class Supervised(object):

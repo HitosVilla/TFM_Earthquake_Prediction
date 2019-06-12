@@ -73,7 +73,7 @@ Data downloaded from https://earthquake.usgs.gov/earthquakes/search/ in csv form
 
 :clipboard: **mag_ym** = maximun magnitude per month/year. Months without data are all from before 1991, I assume there were worst stations than now and not all seisms were collected. So I fill missing data with the average of maximum per month/year.
 
-:clipboard: **features_classification** = ['YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert'] where YM reference to month/year and '2', '3', '4', '5', '6', '7', '8' contain the number of earthquakes of that magnitude
+:clipboard: **features_classification** = ['YM', '2', '3', '4', '5', '6', '7', '8', 'Tempt', 'TemptUncert'] where YM reference to month/year and '2', '3', '4', '5', '6', '7', '8' contain the number of earthquakes of that magnitude and 'Tempt' and 'TemptUncert' are related to averange temperature on that month
 
 :clipboard: **label_classification** this is a Series whose value are 1 if (next month has earthquakes > = 6) else is 0,
  so if we know the earthquakes magnitudes and temperatures of the current month, then I can predict next month
@@ -111,4 +111,40 @@ As it is displayed in the following autocorrelation plot, this time series is co
 ![alt text](./images/TimeSeries3.png)
 
 ## 3. Classification 
+
+The following models are fit with features_classification and label_clasification in order to evaluate wich one is better:
+
+* LogisticRegression 
+* KNeighborsClassifier: parameters tested: {'n_neighbors': np.arange(2, 10)})
+* DecisionTreeClassifier: parameters tested: {'min_samples_leaf': np.arange(50, 300, 50),
+                                             'max_depth': np.arange(2, 10)}),
+* SVC: parameters tested : kernel="linear" and {'C': np.arange(1, 3)}),
+* RandomForestClassifier': parameters tested : {'n_estimators': np.arange(1, 3),
+                                                'max_depth': np.arange(1, 3),
+                                                'min_samples_leaf': np.arange(1, 3)})}
+                                                
+The best one is:
+
+`KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+           metric_params=None, n_jobs=1, n_neighbors=4, p=2,
+           weights='uniform')
+
+Even with an Accuracy of 80% it is not a good model because it has 75.0% recall and 96.0% precision and I expect a higher recall, missing 25% of big earthqueake is quite high.
+
+ROC curve
+![alt text](./images/roc.png)
+
+# 4. Regression.
+
+The following regression models have been fit with time series data:
+
+* LinearRegression
+* KNeighborsRegressor(n_neighbors=10)
+* DecisionTreeRegressor(max_depth=3)
+* RandomForestRegressor(n_estimators = 40, max_depth = 12, min_samples_leaf = 50)
+* 
+
+This is the prediction from them:
+
+![alt text](./images/reg.png)
 
