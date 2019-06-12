@@ -48,8 +48,6 @@ ________________________________________________________________________________
 
 ## 1. Data Processing and Understanding
 
-si hubiera tiempo scrapping https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=1979-01-01%2000:00:00&endtime=2019-06-08%2023:59:59&maxlatitude=-17.979&minlatitude=-57.136&maxlongitude=-64.863&minlongitude=-80.332&minmagnitude=2.5&orderby=time
-
 ### 1.1. DataFrame used
 
 :clipboard: **original_data**
