@@ -8,14 +8,14 @@ With this work I don't try to predict future earthquakes, I know that it's not p
 
 ### Code Structure
 
-* [TFM_1_Scraping.ipynb] notebook to download earthquake data from website.
+* `TFM_1_Scraping.ipynb` notebook to download earthquake data from website.
 
-* [TFM_2_Memo.ipynb] notebook where code in [models] folder is executed and explained step by step. 
+* `TFM_2_Memo.ipynb` notebook where code in [models] folder is executed and explained step by step. 
 
 * [data]: folder where csv files are stored
 
 * [front_end]
-    * [TFM_TimeSeries.twb]: Tableau dashboard with 3 storys:
+    * `TFM_TimeSeries.twb`: Tableau dashboard with 3 storys:
         1. Relation between depth and magnitude
         2. Grafic where historical and forecast data, related to maximum magnitude per month/year, is displayed.
         3. Map where earthquakes are displayed with pagging by month/year
@@ -23,13 +23,13 @@ With this work I don't try to predict future earthquakes, I know that it's not p
         Dashboard information can be filtered by area (Patagonia, Puerto Mont, Santiago, Atacama)
     * ¿? 
 * [models]
-    * [common.py]: get_logger and different plots methods
-    * [read_data.py]: generate required data frames for analysis.
+    * `common.py`: get_logger and different plots methods
+    * `read_data.py`: generate required data frames for analysis.
         1. read_data_common: From earthquake.csv file to sismos and all_months dataframes
         2. read_data_classification: from sismos and all_months dataframes and Temperature.csv file to features_classification dataframe and label_classification series
         3. read_data_time_series: from sismos and all_months dataframes to frequency_year, time_series_magnitude dataframes
-    * [supervised_models.py]: contains Supervided class with methods for crossvalidation, gridsearchcv and one to find the best model evaluating differents parameters in different models 
-    * [time_series.py]: contains TimeSeries class with methods for decompose the series and for Dickey Fuller test
+    * `supervised_models.py`: contains Supervided class with methods for crossvalidation, gridsearchcv and one to find the best model evaluating differents parameters in different models 
+    * `time_series.py`: contains TimeSeries class with methods for decompose the series and for Dickey Fuller test
     
 * [test]: 
     * `unit_test.py`: project unit test to verify everithing is still working after code updates. 
