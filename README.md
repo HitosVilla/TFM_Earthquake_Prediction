@@ -21,7 +21,7 @@ With this work I don't try to predict future earthquakes, I know that it's not p
         3. Map where earthquakes are displayed with pagging by month/year
         
         Dashboard information can be filtered by area (Patagonia, Puerto Mont, Santiago, Atacama)
-    * ¿? 
+    * `TFM_Data`: Shiny with two tabs, one to display earthquake history data and the other to show some plots
 * [models]
     * `common.py`: get_logger and different plots methods
     * `read_data.py`: generate required data frames for analysis.

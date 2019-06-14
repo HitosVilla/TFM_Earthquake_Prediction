@@ -12,6 +12,17 @@ library(DT)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
+  # Read data
+  sismos = read.csv('./../../data/earthquake.csv')
+  
+  # Create Columns
+  sismos$'YM'<- as.Date(paste0(format(as.Date(sismos$time), "%Y-%m"), '-01'), format='%Y-%m-%d')
+  sismos$'year'<- as.Date(paste0(format(as.Date(sismos$time), "%Y"), '-01-01'), format='%Y-%m-%d')
+  sismos$'Date'<- format(as.Date(sismos$time), "%Y-%m-%d")
+  sismos$'mag_int' <- as.integer(sismos[,'mag'])
+  sismos$'mag_type' <- cut(sismos$mag,breaks = c(0, 4, 6, 10), labels = c("low", "medium", "high"))
+  
+  
   # Serie with all months from 1970 until Today
   allMonths <- seq.Date(as.Date("1970/01/01"),
                         max(as.Date(sismos$time)),
@@ -23,17 +34,6 @@ shinyServer(function(input, output) {
                          all.x = TRUE)
   cols <- c("YM","type")
   colnames(allmonths_type) <- cols
-  
-  # Read data
-  sismos = read.csv('./../../data/earthquake.csv')
-  # Create Columns
-  sismos$'YM'<- as.Date(paste0(format(as.Date(sismos$time), "%Y-%m"), '-01'), format='%Y-%m-%d')
-  sismos$'year'<- as.Date(paste0(format(as.Date(sismos$time), "%Y"), '-01-01'), format='%Y-%m-%d')
-  sismos$'Date'<- format(as.Date(sismos$time), "%Y-%m-%d")
-  sismos$'mag_int' <- as.integer(sismos[,'mag'])
-  sismos$'mag_type' <- cut(sismos$mag,breaks = c(0, 4, 6, 10), labels = c("low", "medium", "high"))
-  
-  
   
    # When Magnitude checkbox is clicked return sismos filtered and grouped by month/year
    sismos_filter <- reactive({
